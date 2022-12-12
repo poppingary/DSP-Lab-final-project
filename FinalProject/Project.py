@@ -1,7 +1,10 @@
 import cv2
 import numpy as np
+from pygame import mixer
 
 video_capture = cv2.VideoCapture(0)
+
+IS_BRIGHT = True
 
 def isbright(image, dim=10, thresh=0.5):
     # Resize image to 10x10
@@ -13,6 +16,25 @@ def isbright(image, dim=10, thresh=0.5):
     # Return True if mean is greater than thresh else False
     return 'light' if np.mean(L) > thresh else 'dark'
     
+def play_background_music(image):
+    global IS_BRIGHT
+    if isbright(image) == 'light' and not IS_BRIGHT:
+        mixer.music.stop()
+        mixer.music.load('/Users/Poppingary/Documents/DSP Lab/FinalProject/light_music.wav')
+        mixer.music.play()
+        print(isbright(image))
+        IS_BRIGHT = True
+
+    if isbright(image) == 'dark' and IS_BRIGHT:
+        mixer.music.stop()
+        mixer.music.load('/Users/Poppingary/Documents/DSP Lab/FinalProject/dark_music.wav')
+        mixer.music.play()
+        print(isbright(image))
+        IS_BRIGHT = False
+
+
+mixer.init()
+
 while True:
     # Capture the video frame
     # by frame
@@ -23,13 +45,8 @@ while True:
     
     # Get bright or dark on webcam
     image = frame.copy()
-    print(isbright(image))
-      
-    # the 'q' button is set as the
-    # quitting button you may use any
-    # desired button of your choice
+    play_background_music(image)
     
-    #webcam_properties()
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
   

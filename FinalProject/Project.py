@@ -41,7 +41,7 @@ while True:
     ret, frame = video_capture.read()
   
     # Display the resulting frame
-    cv2.imshow('frame', frame)
+    cv2.imshow('camera capture', frame)
     
     # Get bright or dark on webcam
     image = frame.copy()

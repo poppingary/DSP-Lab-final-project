@@ -61,7 +61,7 @@ S_thresh = Tk.Scale(root, label = 'thresh', variable = thresh_var, from_ = 0, to
 # place widget
 
 L1.pack(side = Tk.TOP)
-S_thresh.pack(side = Tk.BOTTOM)
+S_thresh.pack(side = Tk.LEFT)
 
 
 

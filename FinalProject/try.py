@@ -4,7 +4,7 @@ from pygame import mixer
 import pyaudio
 import wave
 import struct
-from scipy.io import wavfile
+import tkinter as Tk
 import scipy.signal as sps
 
 
@@ -18,6 +18,7 @@ output_byte = 0
 MAX = 2**15 -1
 BLOCKLEN = 533
 output_block = [0] * BLOCKLEN
+Thresh = 100
 
 p = pyaudio.PyAudio()
 # Open audio stream
@@ -30,12 +31,15 @@ stream = p.open(
 
 
 
+# set up vedio
+
 video_capture = cv2.VideoCapture(0)
 
 IS_BRIGHT = True
+Continue = True
 
 
-def isbright(image, dim=10, thresh=0.5):
+def isbright(image, dim=10, thresh=100.0):
     # Resize image to 10x10
     image = cv2.resize(image, (dim, dim))
     # Convert color space to LAB format and extract L channel
@@ -43,19 +47,21 @@ def isbright(image, dim=10, thresh=0.5):
     # Normalize channel by dividing all pixel values with maximum pixel value
     v = im_hsv[:][:][0]
     # Return True if mean is greater than thresh else False
-    return 'light' if np.mean(im_hsv[:][:][0]) > 100 else 'dark'
+    return 'light' if np.mean(im_hsv[:][:][0]) > thresh else 'dark'
 
 
-def play_background_music(image):
+def play_background_music(image,thresh=100):
     global IS_BRIGHT
-    if isbright(image) == 'light' and not IS_BRIGHT:
+    global thresh_var
+    tsh = thresh_var.get()
+    if isbright(image,thresh=tsh) == 'light' and not IS_BRIGHT:
         mixer.music.stop()
         mixer.music.load('light_music2.wav')
         mixer.music.play()
         print(isbright(image))
         IS_BRIGHT = True
 
-    if isbright(image) == 'dark' and IS_BRIGHT:
+    if isbright(image,thresh=tsh) == 'dark' and IS_BRIGHT:
         mixer.music.stop()
         mixer.music.load('dark_music2.wav')
         mixer.music.play()
@@ -66,10 +72,50 @@ def play_background_music(image):
 mixer.init()
 
 
+
+# define TKinter
+
+# TK object
+root = Tk.Tk()
+
+def fun_quit(event):   # quit
+    global Continue
+    print('You pressed ' + event.char)
+    if event.char == 'q':
+        print('Good bye')
+        Continue = False
+        root.quit()
+        root.destroy()
+
+print('press q to quit')
+
+root.bind("<Key>", fun_quit)
+
+# initialize widget
+s = Tk.StringVar()   # legend
+s.set("control threshold")
+thresh_var = Tk.DoubleVar()   # threshold of hue
+thresh_var.set(Thresh)
+
+# define widget
+
+L1 = Tk.Label(root, textvariable=s)
+S_thresh = Tk.Scale(root, label = 'thresh', variable = thresh_var, from_ = 0, to = 255, tickinterval = 5)    # time to repeat the increase and decrease signal, also refers to the modulation frequency (1/T)
+
+# place widget
+
+L1.pack(side = Tk.TOP)
+S_thresh.pack(side = Tk.BOTTOM)
+
+
+
 i = 1
-while True:
+while Continue:
     i += 1
     print(i)
+
+    root.update()
+
     ret, frame = video_capture.read()
 
     # Display the resulting frame
@@ -79,8 +125,8 @@ while True:
     image = frame.copy()
     play_background_music(image)
 
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+    # if cv2.waitKey(1) & 0xFF == ord('q'):
+    #     break
 
 
     input_tuple = stream.read(BLOCKLEN, exception_on_overflow=False)

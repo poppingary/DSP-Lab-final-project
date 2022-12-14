@@ -71,7 +71,7 @@ S_thresh.pack(side = Tk.LEFT)
 
 video_capture = cv2.VideoCapture(0)
 
-IS_BRIGHT = True
+IS_BRIGHT = False
 Continue = True
 
 
@@ -108,9 +108,7 @@ def play_background_music(image):
 mixer.init()
 
 
-
-
-
+# start loop
 
 i = 1
 while Continue:

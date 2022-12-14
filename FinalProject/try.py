@@ -16,7 +16,7 @@ MAX = 2**15 -1
 BLOCKLEN = 512
 output_block = [0] * BLOCKLEN
 Thresh = 100      # hsv threshold initialized value
-background = 0.2
+background = 0.2   # gain of volume of background music
 counter = 1   # counter seeing dark or bright
 ORDER = 5  # order of filter
 

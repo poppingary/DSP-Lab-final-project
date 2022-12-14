@@ -8,7 +8,27 @@ from scipy.io import wavfile
 import scipy.signal as sps
 
 
-# vedio
+
+
+
+WIDTH = 2
+CHANNELS = 1
+RATE = 16000
+output_byte = 0
+MAX = 2**15 -1
+BLOCKLEN = 533
+output_block = [0] * BLOCKLEN
+
+p = pyaudio.PyAudio()
+# Open audio stream
+stream = p.open(
+    format      = p.get_format_from_width(WIDTH),
+    channels    = CHANNELS,
+    rate        = RATE,
+    input       = True,
+    output      = True )
+
+
 
 video_capture = cv2.VideoCapture(0)
 
@@ -46,31 +66,10 @@ def play_background_music(image):
 mixer.init()
 
 
-# creact pyaudio
-# set up
-WIDTH = 2
-CHANNELS = 1
-RATE = 16000
-output_byte = 0
-MAX = 2**15 -1
-
-
-p = pyaudio.PyAudio()
-# Open audio stream
-stream = p.open(
-    format      = p.get_format_from_width(WIDTH),
-    channels    = CHANNELS,
-    rate        = RATE,
-    input       = True,
-    output      = True )
-
-
-
-print("* Start; press 'q' to quit")
-
+i = 1
 while True:
-    # Capture the video frame
-    # by frame
+    i += 1
+    print(i)
     ret, frame = video_capture.read()
 
     # Display the resulting frame
@@ -84,19 +83,18 @@ while True:
         break
 
 
-    # stream write
-
-    input_bytes = stream.read(1,exception_on_overflow=False)
-    input_data = struct.unpack('h', input_bytes)
+    input_tuple = stream.read(BLOCKLEN, exception_on_overflow=False)
+    input_array = struct.unpack('h'*BLOCKLEN, input_tuple)
 
     # output
-    output_data = input_data
-    output_clip = np.clip(output_data,-MAX,MAX)
-    output_clip = int(output_clip)
+    output_array = input_array
+    output_clip = np.clip(output_array, -MAX, MAX)
+    output_clip = output_clip.astype(int)
 
-    binary_data = struct.pack('h', output_clip)
+    binary_data = struct.pack('h'*BLOCKLEN, *output_clip)
 
     stream.write(binary_data)
+
 
 print('* Finished')
 stream.stop_stream()

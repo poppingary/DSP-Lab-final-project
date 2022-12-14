@@ -16,6 +16,7 @@ MAX = 2**15 -1
 BLOCKLEN = 533
 output_block = [0] * BLOCKLEN
 Thresh = 100
+background = 0.3
 
 p = pyaudio.PyAudio()
 # Open audio stream
@@ -52,16 +53,20 @@ s = Tk.StringVar()   # legend
 s.set("control threshold")
 thresh_var = Tk.DoubleVar()   # threshold of hue
 thresh_var.set(Thresh)
+back_var = Tk.DoubleVar()  # gain of background music volume
+back_var.set(background)
 
 # define widget
 
 L1 = Tk.Label(root, textvariable=s)
 S_thresh = Tk.Scale(root, label = 'thresh', variable = thresh_var, from_ = 0, to = 255, tickinterval = 5)    # time to repeat the increase and decrease signal, also refers to the modulation frequency (1/T)
+S_back = Tk.Scale(root, label = 'volume', variable = back_var, from_ = 0, to = 1, tickinterval = 0.05, resolution = 0.01)
 
 # place widget
 
 L1.pack(side = Tk.TOP)
 S_thresh.pack(side = Tk.LEFT)
+S_back.pack(side = Tk.RIGHT)
 
 
 
@@ -89,10 +94,13 @@ def isbright(image, dim=10, thresh=100.0):
 def play_background_music(image):
     global IS_BRIGHT
     global thresh_var
+    global back_var
+    volume = back_var.get()
     tsh = thresh_var.get()
     if isbright(image,thresh=tsh) == 'light' and not IS_BRIGHT:
         mixer.music.stop()
         mixer.music.load('light_music2.wav')
+        mixer.music.set_volume(volume)
         mixer.music.play()
         print(isbright(image))
         IS_BRIGHT = True
@@ -100,6 +108,7 @@ def play_background_music(image):
     if isbright(image,thresh=tsh) == 'dark' and IS_BRIGHT:
         mixer.music.stop()
         mixer.music.load('dark_music2.wav')
+        mixer.music.set_volume(volume)
         mixer.music.play()
         print(isbright(image))
         IS_BRIGHT = False

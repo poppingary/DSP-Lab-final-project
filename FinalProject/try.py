@@ -16,7 +16,7 @@ MAX = 2**15 -1
 BLOCKLEN = 512
 output_block = [0] * BLOCKLEN
 Thresh = 100      # hsv threshold initialized value
-background = 0.3
+background = 0.2
 counter = 1   # counter seeing dark or bright
 ORDER = 5  # order of filter
 
@@ -57,7 +57,7 @@ root.bind("<Key>", fun_quit)
 
 # initialize widget
 s = Tk.StringVar()   # legend
-s.set("control threshold")
+s.set("control panel")
 thresh_var = Tk.DoubleVar()   # threshold of hue
 thresh_var.set(Thresh)
 back_var = Tk.DoubleVar()  # gain of background music volume
@@ -71,10 +71,10 @@ lowpass_freq.set(f2)
 # define widget
 
 L1 = Tk.Label(root, textvariable=s)
-S_thresh = Tk.Scale(root, label = 'thresh', variable = thresh_var, from_ = 0, to = 255, tickinterval = 5)
+S_thresh = Tk.Scale(root, label = 'brightness thresh', variable = thresh_var, from_ = 0, to = 255, tickinterval = 5)
 S_back = Tk.Scale(root, label = 'volume', variable = back_var, from_ = 0, to = 1, tickinterval = 0.05, resolution = 0.01)   # background volume slider
-S_highpass = Tk.Scale(root, label = 'highpass cutoff', variable = highpass_freq, from_ = 10, to = 1500, tickinterval = 50)    # control the highpass filter cutoff frequency
-S_lowpass = Tk.Scale(root, label = 'lowpass cutoff', variable = lowpass_freq, from_ = 100, to = 2500, tickinterval = 50)     # control the lowpass filter cutoff frequency
+S_highpass = Tk.Scale(root, label = 'highpass cutoff (hz)', variable = highpass_freq, from_ = 10, to = 1500, tickinterval = 50)    # control the highpass filter cutoff frequency
+S_lowpass = Tk.Scale(root, label = 'lowpass cutoff (hz)', variable = lowpass_freq, from_ = 100, to = 2500, tickinterval = 50)     # control the lowpass filter cutoff frequency
 
 # place widget
 
@@ -103,7 +103,6 @@ def isbright(image, dim=10, thresh=100.0):
     im_hsv = cv2.split(cv2.cvtColor(image, cv2.COLOR_BGR2LAB))
     # Normalize channel by dividing all pixel values with maximum pixel value
     v = im_hsv[:][:][0]
-    print(im_hsv[:][:][0])
     # Return True if mean is greater than thresh else False
     return 'light' if np.mean(im_hsv[:][:][0]) > thresh else 'dark'
 
@@ -138,6 +137,7 @@ mixer.init()
 
 
 # start loop
+print('* Start, please wait a few seconds for camera start')
 
 while Continue:
 
@@ -161,17 +161,17 @@ while Continue:
     # apply filter
     if counter == 1:
         f1 = highpass_freq.get()
-        b,a = signal.butter(ORDER, f1 / (RATE/2) , btype='highpass')
+        b,a = signal.butter(ORDER, f1 / (RATE/2) , btype='highpass')   # apply highpass filter for bright space
         [f_signal,states] = signal.lfilter(b,a,input_array, zi=states)
     elif counter == 2:
         f2 = lowpass_freq.get()
-        b, a = signal.butter(ORDER, f2 / (RATE / 2), btype='lowpass')
+        b, a = signal.butter(ORDER, f2 / (RATE / 2), btype='lowpass')   # apply low pass filter for dark space
         [f_signal,states] = signal.lfilter(b, a, input_array, zi=states)
 
     # output
     output_array = f_signal
 
-    output_clip = np.clip(output_array, -MAX, MAX)
+    output_clip = np.clip(output_array, -MAX, MAX)  # clipping
     output_clip = output_clip.astype(int)
 
     binary_data = struct.pack('h'*BLOCKLEN, *output_clip)

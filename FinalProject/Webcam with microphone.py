@@ -28,7 +28,7 @@ stream = p.open(
     output      = True)
 
 # Define a function for the thread
-def print_time( threadName, delay):
+def microphone():
    while True:
        input_tuple = stream.read(BLOCKLEN, exception_on_overflow=False)
        input_array = struct.unpack('h'*BLOCKLEN, input_tuple)
@@ -41,8 +41,15 @@ def print_time( threadName, delay):
        binary_data = struct.pack('h'*BLOCKLEN, *output_clip)
 
        stream.write(binary_data)
+       
+   print('* Finished')
+   stream.stop_stream()
+   stream.close()
+   p.terminate()
 
-_thread.start_new_thread( print_time, ("Thread-1", 2, ) )
+_thread.start_new_thread(microphone, ())
+
+
 
 root = Tk()
 root.title('Webcam and background music controller')
@@ -93,15 +100,7 @@ Label(tool_bar, text="Resize").grid(row=4, column=0, padx=5, pady=5)
 Label(tool_bar, text="Exposure").grid(row=5, column=0, padx=5, pady=5)
 Label(tool_bar, image=next_button_image).grid(row=6, column=0, padx=5, pady=5, columnspan=2)
 
-button = Button(root, image = next_button_image, command = next_song,
-borderwidth = 0)
-
-
-
-
-
-
-
+button = Button(root, image = next_button_image, command = next_song, borderwidth = 0)
 
 # Create Volume Function
 # =============================================================================
@@ -177,38 +176,13 @@ def show_frames():
    webcam_label.imgtk = imgtk
    webcam_label.configure(image = imgtk)
    webcam_label.after(1, show_frames)
-   
-   
-
-   
-# =============================================================================
-#    # Get bright or dark on webcam
-#    ret, frame = video_capture.read()
-#    play_background_music(frame.copy())
-# 
-#    input_tuple = stream.read(BLOCKLEN, exception_on_overflow=False)
-#    input_array = struct.unpack('h'*BLOCKLEN, input_tuple)
-# 
-#    # output
-#    output_array = input_array
-#    output_clip = np.clip(output_array, -MAX, MAX)
-#    output_clip = output_clip.astype(int)
-# 
-#    binary_data = struct.pack('h'*BLOCKLEN, *output_clip)
-# 
-#    stream.write(binary_data)
-#    # Repeat after an interval to capture continiously
-# =============================================================================
-
 
 show_frames()
 
 
 root.mainloop()
-print('* Finished')
-stream.stop_stream()
-stream.close()
-p.terminate()
+
+
 
 # After the loop release the cap object
 video_capture.release()

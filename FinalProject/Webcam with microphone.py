@@ -64,7 +64,12 @@ pygame.mixer.init()
 def volume(x):
     pygame.mixer.music.set_volume(volume_slider.get())
     
-def next_song():
+THRESH = 100
+def brightness_thresh(x):
+    global THRESH
+    THRESH = brightness_thresh_slider.get()
+    
+def next_song(x):
 	print("next song")
 
 # Create left and right frames
@@ -109,7 +114,7 @@ next_button_image = ImageTk.PhotoImage(Image.open('images/next_btn.png').resize(
 # Example labels that could be displayed under the "Tool" menu
 volume_slider = ttk.Scale(volume_frame, from_ = 0, to = 1, orient = HORIZONTAL, value = 0.2, command = volume, length = 200)
 volume_slider.pack(pady = 10)
-brightness_thresh_slider = ttk.Scale(brightness_thresh_frame, from_ = 0, to = 255, orient = HORIZONTAL, length = 200)
+brightness_thresh_slider = ttk.Scale(brightness_thresh_frame, from_ = 0, to = 255, orient = HORIZONTAL, value = 100, command = brightness_thresh, length = 200)
 brightness_thresh_slider.pack(pady = 10)
 # =============================================================================
 # Label(tool_bar, text="Select").grid(row=1, column=0, padx=5, pady=5)
@@ -124,15 +129,15 @@ button = Button(root, image = next_button_image, command = next_song, borderwidt
 video_capture = cv2.VideoCapture(0)
 IS_BRIGHT = True
 
-def isbright(image, dim=10, thresh=100):
+def isbright(image, dim=10):
+    global THRESH
     # Resize image to 10x10
     image = cv2.resize(image, (dim, dim))
-    # Convert color space to LAB format and extract L channel
-    im_hsv = cv2.split(cv2.cvtColor(image, cv2.COLOR_BGR2LAB))
-    # Normalize channel by dividing all pixel values with maximum pixel value
-    v = im_hsv[:][:][0]
+    # Convert color space to HSV format and extract V channel
+    im_hsv = cv2.split(cv2.cvtColor(image, cv2.COLOR_BGR2HSV))
+    v = im_hsv[:][:][2]
     # Return True if mean is greater than thresh else False
-    return 'light' if np.mean(v) > thresh else 'dark'
+    return 'light' if np.mean(v) > THRESH else 'dark'
 
 def play_background_music(image):
     global IS_BRIGHT

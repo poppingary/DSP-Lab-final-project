@@ -1,5 +1,6 @@
 # Import the required libraries
 from tkinter import *
+import tkinter.ttk as ttk
 from PIL import Image, ImageTk
 import pygame
 import cv2
@@ -60,6 +61,9 @@ root.config(bg="skyblue")  # specify background color
 # Initialze Pygame Mixer
 pygame.mixer.init()
 
+def volume(x):
+    pygame.mixer.music.set_volume(volume_slider.get())
+    
 def next_song():
 	print("next song")
 
@@ -74,7 +78,7 @@ right_frame.grid(row=0, column=1, padx=10, pady=5)
 Label(left_frame, text="Background music").grid(row=0, column=0, padx=5, pady=5)
 
 # load image to be "edited"
-small_image = ImageTk.PhotoImage(Image.open('images/pikachu.png').resize((180, 180)))
+small_image = ImageTk.PhotoImage(Image.open('images/hello_world.png').resize((180, 180)))
 Label(left_frame, image=small_image).grid(row=1, column=0, padx=5, pady=5)
 
 # Display image in right_frame
@@ -83,48 +87,34 @@ webcam_label = Label(right_frame, image=large_image)
 webcam_label.grid(row=0,column=0, padx=5, pady=5)
 
 # Create tool bar frame
-tool_bar = Frame(left_frame, width=180, height=185)
+tool_bar = Frame(left_frame, width=200, height=185)
 tool_bar.grid(row=2, column=0, padx=5, pady=5)
 
+# Create volume label frame
+volume_frame = LabelFrame(tool_bar, text="Volume")
+volume_frame.grid(row=0 , column=0)
+
 # Example labels that serve as placeholders for other widgets
-Label(tool_bar, text="Tools", relief=RAISED).grid(row=0, column=0, padx=5, pady=3, ipadx=10)  # ipadx is padding inside the Label widget
-Label(tool_bar, text="Filters", relief=RAISED).grid(row=0, column=1, padx=5, pady=3, ipadx=10)
+# =============================================================================
+# Label(tool_bar, text="Tools", relief=RAISED).grid(row=0, column=0, padx=5, pady=3, ipadx=10)  # ipadx is padding inside the Label widget
+# Label(tool_bar, text="Filters", relief=RAISED).grid(row=0, column=1, padx=5, pady=3, ipadx=10)
+# =============================================================================
 
 next_button_image = ImageTk.PhotoImage(Image.open('images/next_btn.png').resize((100, 40)))
 
 # Example labels that could be displayed under the "Tool" menu
-Label(tool_bar, text="Select").grid(row=1, column=0, padx=5, pady=5)
-Label(tool_bar, text="Crop").grid(row=2, column=0, padx=5, pady=5)
-Label(tool_bar, text="Rotate & Flip").grid(row=3, column=0, padx=5, pady=5)
-Label(tool_bar, text="Resize").grid(row=4, column=0, padx=5, pady=5)
-Label(tool_bar, text="Exposure").grid(row=5, column=0, padx=5, pady=5)
-Label(tool_bar, image=next_button_image).grid(row=6, column=0, padx=5, pady=5, columnspan=2)
-
-button = Button(root, image = next_button_image, command = next_song, borderwidth = 0)
-
-# Create Volume Function
+volume_slider = ttk.Scale(volume_frame, from_=0, to=1, orient=HORIZONTAL, value=0.2, command=volume, length=200)
+volume_slider.pack(pady=10)
 # =============================================================================
-# def volume(x):
-#  	pygame.mixer.music.set_volume(volume_slider.get())
-#  	
-#  	# Get current Volume
-#  	current_volume = pygame.mixer.music.get_volume()
-#  	# Times by 100 to make it easier to work with
-#  	current_volume = current_volume * 100
-#  	#slider_label.config(text=current_volume * 100)
+# Label(tool_bar, text="Select").grid(row=1, column=0, padx=5, pady=5)
+# Label(tool_bar, text="Crop").grid(row=2, column=0, padx=5, pady=5)
+# Label(tool_bar, text="Rotate & Flip").grid(row=3, column=0, padx=5, pady=5)
+# Label(tool_bar, text="Resize").grid(row=4, column=0, padx=5, pady=5)
+# Label(tool_bar, text="Exposure").grid(row=5, column=0, padx=5, pady=5)
 # 
-#  	# Change Volume Meter Picture
-#  	if int(current_volume) < 1:
-# 		volume_meter.config(image=vol0)
-#  	elif int(current_volume) > 0 and int(current_volume) <= 25:
-# 		volume_meter.config(image=vol1)
-#  	elif int(current_volume) >= 25 and int(current_volume) <= 50:
-# 		volume_meter.config(image=vol2)
-#  	elif int(current_volume) >= 50 and int(current_volume) <= 75:
-# 		volume_meter.config(image=vol3)
-#  	elif int(current_volume) >= 75 and int(current_volume) <= 100:
-# 		volume_meter.config(image=vol4)	
 # =============================================================================
+Label(tool_bar, image=next_button_image).grid(row=1, column=0, padx=5, pady=5, columnspan=2)
+button = Button(root, image = next_button_image, command = next_song, borderwidth = 0)
 
 video_capture = cv2.VideoCapture(0)
 IS_BRIGHT = True
@@ -144,7 +134,7 @@ def play_background_music(image):
     if isbright(image) == 'light' and not IS_BRIGHT:
         pygame.mixer.music.stop()
         pygame.mixer.music.load('light_music2.wav')
-        pygame.mixer.music.set_volume(0.05)
+        pygame.mixer.music.set_volume(0.2)
         pygame.mixer.music.play()
         print(isbright(image))
         IS_BRIGHT = True
@@ -152,7 +142,7 @@ def play_background_music(image):
     if isbright(image) == 'dark' and IS_BRIGHT:
         pygame.mixer.music.stop()
         pygame.mixer.music.load('dark_music2.wav')
-        pygame.mixer.music.set_volume(0.05)
+        pygame.mixer.music.set_volume(0.2)
         pygame.mixer.music.play()
         print(isbright(image))
         IS_BRIGHT = False

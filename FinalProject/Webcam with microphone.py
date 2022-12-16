@@ -79,20 +79,24 @@ Label(left_frame, text="Background music").grid(row=0, column=0, padx=5, pady=5)
 
 # load image to be "edited"
 small_image = ImageTk.PhotoImage(Image.open('images/hello_world.png').resize((180, 180)))
-Label(left_frame, image=small_image).grid(row=1, column=0, padx=5, pady=5)
+Label(left_frame, image = small_image).grid(row = 1, column = 0, padx = 5, pady = 5)
 
 # Display image in right_frame
 large_image = ImageTk.PhotoImage(Image.open('images/pikachu.png').resize((940, 770)))
-webcam_label = Label(right_frame, image=large_image)
-webcam_label.grid(row=0,column=0, padx=5, pady=5)
+webcam_label = Label(right_frame, image = large_image)
+webcam_label.grid(row = 0,column = 0, padx = 5, pady = 5)
 
 # Create tool bar frame
-tool_bar = Frame(left_frame, width=200, height=185)
-tool_bar.grid(row=2, column=0, padx=5, pady=5)
+tool_bar = Frame(left_frame, width = 200, height = 185)
+tool_bar.grid(row = 2, column = 0, padx = 5, pady = 5)
 
 # Create volume label frame
 volume_frame = LabelFrame(tool_bar, text="Volume")
-volume_frame.grid(row=0 , column=0)
+volume_frame.grid(row = 0 , column = 0)
+
+# Create brightness thresh label frame
+brightness_thresh_frame = LabelFrame(tool_bar, text="Brightness thresh")
+brightness_thresh_frame.grid(row = 1 , column = 0)
 
 # Example labels that serve as placeholders for other widgets
 # =============================================================================
@@ -103,17 +107,18 @@ volume_frame.grid(row=0 , column=0)
 next_button_image = ImageTk.PhotoImage(Image.open('images/next_btn.png').resize((100, 40)))
 
 # Example labels that could be displayed under the "Tool" menu
-volume_slider = ttk.Scale(volume_frame, from_=0, to=1, orient=HORIZONTAL, value=0.2, command=volume, length=200)
-volume_slider.pack(pady=10)
+volume_slider = ttk.Scale(volume_frame, from_ = 0, to = 1, orient = HORIZONTAL, value = 0.2, command = volume, length = 200)
+volume_slider.pack(pady = 10)
+brightness_thresh_slider = ttk.Scale(brightness_thresh_frame, from_ = 0, to = 255, orient = HORIZONTAL, length = 200)
+brightness_thresh_slider.pack(pady = 10)
 # =============================================================================
 # Label(tool_bar, text="Select").grid(row=1, column=0, padx=5, pady=5)
 # Label(tool_bar, text="Crop").grid(row=2, column=0, padx=5, pady=5)
 # Label(tool_bar, text="Rotate & Flip").grid(row=3, column=0, padx=5, pady=5)
 # Label(tool_bar, text="Resize").grid(row=4, column=0, padx=5, pady=5)
 # Label(tool_bar, text="Exposure").grid(row=5, column=0, padx=5, pady=5)
-# 
 # =============================================================================
-Label(tool_bar, image=next_button_image).grid(row=1, column=0, padx=5, pady=5, columnspan=2)
+Label(tool_bar, image=next_button_image).grid(row = 3, column = 0, padx = 5, pady = 5, columnspan = 2)
 button = Button(root, image = next_button_image, command = next_song, borderwidth = 0)
 
 video_capture = cv2.VideoCapture(0)

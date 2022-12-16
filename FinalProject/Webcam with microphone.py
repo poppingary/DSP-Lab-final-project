@@ -1,4 +1,3 @@
-# Import the required libraries
 from tkinter import *
 import tkinter.ttk as ttk
 from PIL import Image, ImageTk
@@ -8,9 +7,7 @@ import numpy as np
 import pyaudio
 import struct
 from scipy import signal
-
 import _thread
-import time
 
 root = Tk()
 root.title('Webcam and background music controller')
@@ -35,6 +32,11 @@ HIGH_PASS_FREQ = 750
 def high_pass(x):
     global HIGH_PASS_FREQ
     HIGH_PASS_FREQ = high_pass_slider.get()
+    
+LOW_PASS_FREQ = 1250
+def low_pass(x):
+    global LOW_PASS_FREQ
+    LOW_PASS_FREQ = low_pass_slider.get()
     
 def next_song(x):
 	print("next song")
@@ -74,8 +76,15 @@ brightness_thresh_frame.grid(row = 1 , column = 0)
 high_pass_frame = LabelFrame(tool_bar, text = "High-pass filter")
 high_pass_frame.grid(row = 2 , column = 0)
 
+# Create high pass filter label frame
+low_pass_frame = LabelFrame(tool_bar, text = "Low-pass filter")
+low_pass_frame.grid(row = 3 , column = 0)
+
 # Create next song button image
 next_button_image = ImageTk.PhotoImage(Image.open('images/next_btn.png').resize((100, 40)))
+# Create next button label
+button = Button(root, image = next_button_image, command = next_song, borderwidth = 0)
+Label(tool_bar, image = next_button_image).grid(row = 4, column = 0, padx = 5, pady = 5, columnspan = 2)
 
 # Example labels that could be displayed under the "Tool" menu
 volume_slider = ttk.Scale(volume_frame, from_ = 0, to = 1, orient = HORIZONTAL, value = VALUME, command = volume, length = 200)
@@ -84,8 +93,8 @@ brightness_thresh_slider = ttk.Scale(brightness_thresh_frame, from_ = 0, to = 25
 brightness_thresh_slider.pack(pady = 10)
 high_pass_slider = ttk.Scale(high_pass_frame, from_ = 10, to = 1500, orient = HORIZONTAL, value = HIGH_PASS_FREQ, command = high_pass, length = 200)
 high_pass_slider.pack(pady = 10)
-Label(tool_bar, image = next_button_image).grid(row = 3, column = 0, padx = 5, pady = 5, columnspan = 2)
-button = Button(root, image = next_button_image, command = next_song, borderwidth = 0)
+low_pass_slider = ttk.Scale(low_pass_frame, from_ = 100, to = 2500, orient = HORIZONTAL, value = LOW_PASS_FREQ, command = low_pass, length = 200)
+low_pass_slider.pack(pady = 10)
 
 video_capture = cv2.VideoCapture(0)
 IS_BRIGHT = True
@@ -139,13 +148,14 @@ show_frames()
 def microphone():
    global states
    global HIGH_PASS_FREQ
+   global LOW_PASS_FREQ
+   global IS_BRIGHT
+   
    WIDTH = 2
    CHANNELS = 1
    RATE = 16000
-   output_byte = 0
    MAX = 2**15 - 1
    BLOCKLEN = 1200
-   output_block = [0] * BLOCKLEN
    ORDER = 5  # order of filter
    states = [0] * ORDER   # initial states
 
@@ -162,9 +172,12 @@ def microphone():
        input_tuple = stream.read(BLOCKLEN, exception_on_overflow = False)
        input_array = struct.unpack('h'*BLOCKLEN, input_tuple)
 
-       b, a = signal.butter(ORDER, HIGH_PASS_FREQ / (RATE / 2) , btype = 'highpass')   # apply highpass filter for bright space
+       if IS_BRIGHT:
+           b, a = signal.butter(ORDER, HIGH_PASS_FREQ / (RATE / 2) , btype = 'highpass')   # apply highpass filter for bright space
+       else:
+           b, a = signal.butter(ORDER, LOW_PASS_FREQ / (RATE / 2) , btype = 'lowpass')   # apply highpass filter for bright space
+           
        [filter_signal, states] = signal.lfilter(b, a, input_array, zi = states)
-
        # output
        output_array = filter_signal
        output_clip = np.clip(output_array, -MAX, MAX)

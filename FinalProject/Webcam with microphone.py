@@ -20,9 +20,11 @@ root.config(bg="skyblue")  # specify background color
 # Initialze Pygame Mixer
 pygame.mixer.init()
 
-
+VALUME = 0.2
 def volume(x):
-    pygame.mixer.music.set_volume(volume_slider.get())
+    global VALUME
+    VALUME = volume_slider.get()
+    pygame.mixer.music.set_volume(VALUME)
     
 THRESH = 100
 def brightness_thresh(x):
@@ -76,11 +78,11 @@ high_pass_frame.grid(row = 2 , column = 0)
 next_button_image = ImageTk.PhotoImage(Image.open('images/next_btn.png').resize((100, 40)))
 
 # Example labels that could be displayed under the "Tool" menu
-volume_slider = ttk.Scale(volume_frame, from_ = 0, to = 1, orient = HORIZONTAL, value = 0.2, command = volume, length = 200)
+volume_slider = ttk.Scale(volume_frame, from_ = 0, to = 1, orient = HORIZONTAL, value = VALUME, command = volume, length = 200)
 volume_slider.pack(pady = 10)
-brightness_thresh_slider = ttk.Scale(brightness_thresh_frame, from_ = 0, to = 255, orient = HORIZONTAL, value = 100, command = brightness_thresh, length = 200)
+brightness_thresh_slider = ttk.Scale(brightness_thresh_frame, from_ = 0, to = 255, orient = HORIZONTAL, value = THRESH, command = brightness_thresh, length = 200)
 brightness_thresh_slider.pack(pady = 10)
-high_pass_slider = ttk.Scale(high_pass_frame, from_ = 10, to = 1500, orient = HORIZONTAL, value = 750, command = high_pass, length = 200)
+high_pass_slider = ttk.Scale(high_pass_frame, from_ = 10, to = 1500, orient = HORIZONTAL, value = HIGH_PASS_FREQ, command = high_pass, length = 200)
 high_pass_slider.pack(pady = 10)
 Label(tool_bar, image = next_button_image).grid(row = 3, column = 0, padx = 5, pady = 5, columnspan = 2)
 button = Button(root, image = next_button_image, command = next_song, borderwidth = 0)
@@ -119,14 +121,9 @@ def play_background_music(image):
 def show_frames():
    ret, frame = video_capture.read()
 
-   # Display the resulting frame
-   # cv2.imshow('camera capture', frame)
-   
    # Get bright or dark on webcam
    play_background_music(frame.copy())
 
-   # if cv2.waitKey(1) & 0xFF == ord('q'):
-   #     break
    # Get the latest frame and convert into Image
    cv2image = cv2.cvtColor(video_capture.read()[1], cv2.COLOR_BGR2RGB)
    img = Image.fromarray(cv2image)

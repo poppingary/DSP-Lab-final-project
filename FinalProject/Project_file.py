@@ -58,16 +58,16 @@ def music_change():   # change music
         MUSIC_STYLE = 2    # change to style 2
         mixer.music.stop()
         if counter == 1:  # bright
-            mixer.music.load('light_music2.wav')
+            mixer.music.load('music/light_music2.wav')
         elif counter ==2: # dark
-            mixer.music.load('quiet_music2.wav')
+            mixer.music.load('music/quiet_music2.wav')
     else:   # from style 2 change to style 1
         MUSIC_STYLE = 1    # change to style 1
         mixer.music.stop()
         if counter == 1:  # bright
-            mixer.music.load('light_music1.wav')
+            mixer.music.load('music/light_music1.wav')
         elif counter ==2: # dark
-            mixer.music.load('quiet_music1.wav')
+            mixer.music.load('music/quiet_music1.wav')
     mixer.music.play()
 
 
@@ -127,15 +127,15 @@ IS_BRIGHT = False
 Continue = True
 
 
-# setting plot
-brightness = 0
-plt.ion()
-plt.figure(1)
-[g1] = plt.plot(brightness)
-t = [n*1000/float(RATE) for n in range(BLOCKLEN)]
-plt.xlim(0, 1000.0 * BLOCKLEN/RATE)
-plt.xlabel('Time(msec)')
-plt.ylim(0,250)
+## setting plot
+#brightness = 0
+#plt.ion()
+#plt.figure(1)
+#[g1] = plt.plot(brightness)
+#t = [n*1000/float(RATE) for n in range(BLOCKLEN)]
+#plt.xlim(0, 1000.0 * BLOCKLEN/RATE)
+#plt.xlabel('Time(msec)')
+#plt.ylim(0,250)
 
 
 
@@ -161,7 +161,7 @@ def play_background_music(image):
     tsh = thresh_var.get()
     if isbright(image,thresh=tsh) == 'light' and not IS_BRIGHT:
         mixer.music.stop()
-        mixer.music.load('light_music1.wav')
+        mixer.music.load('music/light_music1.wav')
         mixer.music.play()
         print(isbright(image))
         IS_BRIGHT = True
@@ -170,7 +170,7 @@ def play_background_music(image):
 
     if isbright(image,thresh=tsh) == 'dark' and IS_BRIGHT:
         mixer.music.stop()
-        mixer.music.load('quiet_music1.wav')
+        mixer.music.load('music/quiet_music1.wav')
         # mixer.music.set_volume(volume)
         mixer.music.play()
         print(isbright(image))
@@ -216,14 +216,14 @@ while Continue:
         b, a = signal.butter(ORDER, f2 / (RATE / 2), btype='lowpass')   # apply low pass filter for dark space
         [f_signal,states] = signal.lfilter(b, a, input_array, zi=states)
 
-    image = cv2.resize(image, (10, 10))
-    # Convert color space to HSV format and extract V channel
-    im_hsv = cv2.split(cv2.cvtColor(image, cv2.COLOR_BGR2HSV))
-    v = im_hsv[:][:][2]
-    brightness = np.mean(v)
-    g1.set_ydata(brightness)
-    print(brightness)
-    plt.pause(0.0001)
+#    image = cv2.resize(image, (10, 10))
+#    # Convert color space to HSV format and extract V channel
+#    im_hsv = cv2.split(cv2.cvtColor(image, cv2.COLOR_BGR2HSV))
+#    v = im_hsv[:][:][2]
+#    brightness = np.mean(v)
+#    g1.set_ydata(brightness)
+#    print(brightness)
+#    plt.pause(0.0001)
 
     # output
     output_array = f_signal
@@ -246,6 +246,6 @@ video_capture.release()
 # Destroy all the windows
 cv2.destroyAllWindows()
 
-plt.ioff()
-plt.show()
-plt.close()
+#plt.ioff()
+#plt.show()
+#plt.close()

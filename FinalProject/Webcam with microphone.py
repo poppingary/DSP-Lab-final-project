@@ -8,6 +8,7 @@ import pyaudio
 import struct
 from scipy import signal
 import _thread
+import re
 
 root = Tk()
 root.title('Webcam and background music controller')
@@ -16,6 +17,11 @@ root.config(bg="skyblue")  # specify background color
 
 # Initialze Pygame Mixer
 pygame.mixer.init()
+
+# Initialize VideoCapture
+video_capture = cv2.VideoCapture(0)
+IS_BRIGHT = True
+PLAYING_SONG = ''
 
 VALUME = 0.2
 def volume(x):
@@ -38,8 +44,26 @@ def low_pass(x):
     global LOW_PASS_FREQ
     LOW_PASS_FREQ = low_pass_slider.get()
     
-def next_song(x):
-	print("next song")
+def next_song():
+    global PLAYING_SONG
+    temp = re.findall(r'\d+', PLAYING_SONG)
+    res = list(map(int, temp))
+    song = 'music'
+    if IS_BRIGHT:
+        song += '/light_music'
+    else:
+        song += '/quiet_music'
+    num = (res[0] + 1) % 2
+    PLAYING_SONG = song + str(num) + '.wav'
+    print(PLAYING_SONG)
+    pygame.mixer.music.load(PLAYING_SONG)
+    pygame.mixer.music.play(loops=0)
+    
+def exit_func():   # quit
+    video_capture.release()
+    print('Good bye')
+    root.quit()
+    root.destroy()
 
 # Create left and right frames
 left_frame = Frame(root, width=200, height=400, bg='grey')
@@ -56,7 +80,7 @@ small_image = ImageTk.PhotoImage(Image.open('images/hello_world.png').resize((18
 Label(left_frame, image = small_image).grid(row = 1, column = 0, padx = 5, pady = 5)
 
 # Webcam is in right_frame
-large_image = ImageTk.PhotoImage(Image.open('images/pikachu.png').resize((940, 770)))
+large_image = ImageTk.PhotoImage(Image.open('images/hello_world.png').resize((940, 770)))
 webcam_label = Label(right_frame, image = large_image)
 webcam_label.grid(row = 0,column = 0, padx = 5, pady = 5)
 
@@ -81,10 +105,16 @@ low_pass_frame = LabelFrame(tool_bar, text = "Low-pass filter")
 low_pass_frame.grid(row = 3 , column = 0)
 
 # Create next song button image
-next_button_image = ImageTk.PhotoImage(Image.open('images/next_btn.png').resize((100, 40)))
-# Create next button label
-button = Button(root, image = next_button_image, command = next_song, borderwidth = 0)
-Label(tool_bar, image = next_button_image).grid(row = 4, column = 0, padx = 5, pady = 5, columnspan = 2)
+# next_button_image = ImageTk.PhotoImage(Image.open('images/next_btn.png').resize((100, 40)))
+# Create next song button and button label
+next_song_button = ttk.Button(tool_bar, text = 'next song', command = next_song).grid(row = 4, column = 0, padx = 5, pady = 5, columnspan = 2)
+# Label(tool_bar, image = next_button_image)
+
+# Create exit button image
+# exit_button_image = ImageTk.PhotoImage(Image.open('images/exit.png').resize((100, 40)))
+# Create exit button and button label
+exit_button = ttk.Button(tool_bar, text = 'exit', command = exit_func).grid(row = 5, column = 0, padx = 5, pady = 5, columnspan = 2)
+# Label(tool_bar, image = exit_button_image)
 
 # Example labels that could be displayed under the "Tool" menu
 volume_slider = ttk.Scale(volume_frame, from_ = 0, to = 1, orient = HORIZONTAL, value = VALUME, command = volume, length = 200)
@@ -96,8 +126,6 @@ high_pass_slider.pack(pady = 10)
 low_pass_slider = ttk.Scale(low_pass_frame, from_ = 100, to = 2500, orient = HORIZONTAL, value = LOW_PASS_FREQ, command = low_pass, length = 200)
 low_pass_slider.pack(pady = 10)
 
-video_capture = cv2.VideoCapture(0)
-IS_BRIGHT = True
 
 def isbright(image, dim=10):
     global THRESH
@@ -111,17 +139,20 @@ def isbright(image, dim=10):
 
 def play_background_music(image):
     global IS_BRIGHT
+    global PLAYING_SONG
     if isbright(image) == 'light' and not IS_BRIGHT:
+        PLAYING_SONG = 'music/light_music0.wav'
         pygame.mixer.music.stop()
-        pygame.mixer.music.load('light_music.wav')
+        pygame.mixer.music.load(PLAYING_SONG)
         pygame.mixer.music.set_volume(0.2)
         pygame.mixer.music.play()
         print(isbright(image))
         IS_BRIGHT = True
 
     if isbright(image) == 'dark' and IS_BRIGHT:
+        PLAYING_SONG = 'music/quiet_music0.wav'
         pygame.mixer.music.stop()
-        pygame.mixer.music.load('quiet_music1.wav')
+        pygame.mixer.music.load(PLAYING_SONG)
         pygame.mixer.music.set_volume(0.2)
         pygame.mixer.music.play()
         print(isbright(image))
@@ -199,10 +230,3 @@ if MICROPHONE_THREAD_COUNTER == 0:
 
 
 root.mainloop()
-
-
-
-# After the loop release the cap object
-video_capture.release()
-# Destroy all the windows
-cv2.destroyAllWindows()

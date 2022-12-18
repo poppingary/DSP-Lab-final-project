@@ -6,6 +6,8 @@ import pygame
 import struct
 import tkinter as Tk
 from scipy import signal
+import matplotlib.pyplot as plt
+
 
 
 WIDTH = 2
@@ -125,6 +127,18 @@ IS_BRIGHT = False
 Continue = True
 
 
+# setting plot
+brightness = 0
+plt.ion()
+plt.figure(1)
+[g1] = plt.plot(brightness)
+t = [n*1000/float(RATE) for n in range(BLOCKLEN)]
+plt.xlim(0, 1000.0 * BLOCKLEN/RATE)
+plt.xlabel('Time(msec)')
+plt.ylim(0,250)
+
+
+
 
 
 def isbright(image, dim=10, thresh=100.0):
@@ -133,6 +147,7 @@ def isbright(image, dim=10, thresh=100.0):
     # Convert color space to HSV format and extract V channel
     im_hsv = cv2.split(cv2.cvtColor(image, cv2.COLOR_BGR2HSV))
     v = im_hsv[:][:][2]
+
     # Return True if mean is greater than thresh else False
     return 'light' if np.mean(v) > thresh else 'dark'
 
@@ -201,6 +216,15 @@ while Continue:
         b, a = signal.butter(ORDER, f2 / (RATE / 2), btype='lowpass')   # apply low pass filter for dark space
         [f_signal,states] = signal.lfilter(b, a, input_array, zi=states)
 
+    image = cv2.resize(image, (10, 10))
+    # Convert color space to HSV format and extract V channel
+    im_hsv = cv2.split(cv2.cvtColor(image, cv2.COLOR_BGR2HSV))
+    v = im_hsv[:][:][2]
+    brightness = np.mean(v)
+    g1.set_ydata(brightness)
+    print(brightness)
+    plt.pause(0.0001)
+
     # output
     output_array = f_signal
 
@@ -221,3 +245,7 @@ p.terminate()
 video_capture.release()
 # Destroy all the windows
 cv2.destroyAllWindows()
+
+plt.ioff()
+plt.show()
+plt.close()

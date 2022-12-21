@@ -13,7 +13,7 @@ import re
 root = Tk()
 root.title('Webcam and background music controller')
 root.maxsize(1700, 900)  # specify the max size the window can expand to
-root.config(bg="skyblue")  # specify background color
+root.config(bg = "skyblue")  # specify background color
 
 # Initialze Pygame Mixer
 pygame.mixer.init()
@@ -50,14 +50,15 @@ def next_song():
     res = list(map(int, temp))
     song = 'music'
     if IS_BRIGHT:
-        song += '/light_music'
+        song += '/lively_music'
     else:
         song += '/quiet_music'
     num = (res[0] + 1) % 2
     PLAYING_SONG = song + str(num) + '.wav'
     print(PLAYING_SONG)
     pygame.mixer.music.load(PLAYING_SONG)
-    pygame.mixer.music.play(loops=0)
+    pygame.mixer.music.set_volume(VALUME)
+    pygame.mixer.music.play(loops = -1)
     
 def exit_func():   # quit
     video_capture.release()
@@ -66,14 +67,14 @@ def exit_func():   # quit
     root.destroy()
 
 # Create left and right frames
-left_frame = Frame(root, width=200, height=400, bg='grey')
-left_frame.grid(row=0, column=0, padx=10, pady=5)
+left_frame = Frame(root, width = 200, height = 400, bg = 'grey')
+left_frame.grid(row = 0, column = 0, padx = 10, pady = 5)
 
-right_frame = Frame(root, width=950, height=780, bg='grey')
-right_frame.grid(row=0, column=1, padx=10, pady=5)
+right_frame = Frame(root, width = 950, height = 780, bg = 'grey')
+right_frame.grid(row = 0, column = 1, padx = 10, pady = 5)
 
 # Create frames and labels in left_frame
-Label(left_frame, text="Background music").grid(row=0, column=0, padx=5, pady=5)
+Label(left_frame, text = "Background music").grid(row = 0, column = 0, padx = 5, pady = 5)
 
 # load music image
 small_image = ImageTk.PhotoImage(Image.open('images/hello_world.png').resize((180, 180)))
@@ -104,17 +105,11 @@ high_pass_frame.grid(row = 2 , column = 0)
 low_pass_frame = LabelFrame(tool_bar, text = "Low-pass filter")
 low_pass_frame.grid(row = 3 , column = 0)
 
-# Create next song button image
-# next_button_image = ImageTk.PhotoImage(Image.open('images/next_btn.png').resize((100, 40)))
-# Create next song button and button label
+# Create next song button
 next_song_button = ttk.Button(tool_bar, text = 'next song', command = next_song).grid(row = 4, column = 0, padx = 5, pady = 5, columnspan = 2)
-# Label(tool_bar, image = next_button_image)
 
-# Create exit button image
-# exit_button_image = ImageTk.PhotoImage(Image.open('images/exit.png').resize((100, 40)))
-# Create exit button and button label
+# Create exit button
 exit_button = ttk.Button(tool_bar, text = 'exit', command = exit_func).grid(row = 5, column = 0, padx = 5, pady = 5, columnspan = 2)
-# Label(tool_bar, image = exit_button_image)
 
 # Example labels that could be displayed under the "Tool" menu
 volume_slider = ttk.Scale(volume_frame, from_ = 0, to = 1, orient = HORIZONTAL, value = VALUME, command = volume, length = 200)
@@ -127,7 +122,7 @@ low_pass_slider = ttk.Scale(low_pass_frame, from_ = 100, to = 2500, orient = HOR
 low_pass_slider.pack(pady = 10)
 
 
-def isbright(image, dim=10):
+def isbright(image, dim = 10):
     global THRESH
     # Resize image to 10x10
     image = cv2.resize(image, (dim, dim))
@@ -135,28 +130,26 @@ def isbright(image, dim=10):
     im_hsv = cv2.split(cv2.cvtColor(image, cv2.COLOR_BGR2HSV))
     v = im_hsv[:][:][2]
     # Return True if mean is greater than thresh else False
-    return 'light' if np.mean(v) > THRESH else 'dark'
+    return True if np.mean(v) > THRESH else False
 
 def play_background_music(image):
     global IS_BRIGHT
     global PLAYING_SONG
-    if isbright(image) == 'light' and not IS_BRIGHT:
-        PLAYING_SONG = 'music/light_music0.wav'
-        pygame.mixer.music.stop()
-        pygame.mixer.music.load(PLAYING_SONG)
-        pygame.mixer.music.set_volume(0.2)
-        pygame.mixer.music.play()
-        print(isbright(image))
+    is_bright_now = isbright(image)
+    print('Bright: ' + str(is_bright_now))
+    
+    if is_bright_now == IS_BRIGHT:
+        return
+    
+    if is_bright_now:
+        PLAYING_SONG = 'music/lively_music0.wav'
         IS_BRIGHT = True
-
-    if isbright(image) == 'dark' and IS_BRIGHT:
+    else:
         PLAYING_SONG = 'music/quiet_music0.wav'
-        pygame.mixer.music.stop()
-        pygame.mixer.music.load(PLAYING_SONG)
-        pygame.mixer.music.set_volume(0.2)
-        pygame.mixer.music.play()
-        print(isbright(image))
         IS_BRIGHT = False
+    pygame.mixer.music.load(PLAYING_SONG)
+    pygame.mixer.music.set_volume(VALUME)
+    pygame.mixer.music.play(loops = -1)
 
 def show_frames():
    ret, frame = video_capture.read()
@@ -186,7 +179,7 @@ def microphone():
    CHANNELS = 1
    RATE = 16000
    MAX = 2**15 - 1
-   BLOCKLEN = 1200
+   BLOCKLEN = 512
    ORDER = 5  # order of filter
    states = [0] * ORDER   # initial states
 
@@ -201,7 +194,7 @@ def microphone():
 
    while True:
        input_tuple = stream.read(BLOCKLEN, exception_on_overflow = False)
-       input_array = struct.unpack('h'*BLOCKLEN, input_tuple)
+       input_array = struct.unpack('h' * BLOCKLEN, input_tuple)
 
        if IS_BRIGHT:
            b, a = signal.butter(ORDER, HIGH_PASS_FREQ / (RATE / 2) , btype = 'highpass')   # apply highpass filter for bright space
@@ -214,7 +207,7 @@ def microphone():
        output_clip = np.clip(output_array, -MAX, MAX)
        output_clip = output_clip.astype(int)
 
-       binary_data = struct.pack('h'*BLOCKLEN, *output_clip)
+       binary_data = struct.pack('h' * BLOCKLEN, *output_clip)
 
        stream.write(binary_data)
        
